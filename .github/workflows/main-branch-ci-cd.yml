@@ -1,0 +1,44 @@
+name: Deploy React Frontend to EC2 (Dev)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy-frontend:
+    runs-on: ubuntu-latest
+    steps:     
+    - name: Set up SSH
+      uses: webfactory/ssh-agent@v0.5.3
+      with:
+        ssh-private-key: ${{ secrets.EC2_SSH_KEY }}
+        
+    - name: Deploy React Frontend to main Server
+      run: |
+        ssh -o StrictHostKeyChecking=no ubuntu@54.219.112.181 << 'EOF'
+          # Navigate to the React app directory
+          cd /home/ubuntu/react-prod || { echo "Failed to cd into React app directory"; exit 1; }
+          
+          # Mark the directory as safe
+          sudo git config --global --add safe.directory /home/ubuntu/react-prod
+          
+          # Stash any uncommitted changes
+          sudo git stash || echo "Nothing to stash"
+          
+          # Pull the latest changes from dev branch
+          sudo git checkout main
+          sudo git pull origin main || { echo "Git pull failed"; exit 1; }
+          
+          # Install dependencies
+          npm i || { echo "npm ci failed, trying npm install"; sudo npm install; }
+          
+          # Build the React app
+          npm run build || { echo "Build failed"; exit 1; }
+
+          # Copy build file
+          sudo cp -r dist/* /var/www/react-production
+
+          sudo systemctl restart nginx
+          echo "React frontend deployment completed successfully"
+        EOF
