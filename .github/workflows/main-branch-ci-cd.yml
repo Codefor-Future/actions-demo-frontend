@@ -24,11 +24,14 @@ jobs:
 
     - name: Copy build files to EC2
       run: |
-        rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./dist/ ubuntu@54.219.112.181:/var/www/react-production || { echo "File copy failed"; exit 1; }
+        rsync -avz --delete -e "ssh -o StrictHostKeyChecking=no" ./dist/ ubuntu@54.219.112.181:/home/ubuntu/temp-react-build || { echo "File copy failed"; exit 1; }
 
-    - name: Restart Nginx on EC2
+    - name: Move build files to web directory with sudo
       run: |
         ssh -o StrictHostKeyChecking=no ubuntu@54.219.112.181 << 'EOF'
-          sudo systemctl restart nginx || { echo "Failed to restart Nginx"; exit 1; }
-          echo "React frontend deployment completed successfully"
+          sudo rm -rf /var/www/react-production/*
+          sudo mv /home/ubuntu/temp-react-build/* /var/www/react-production/
+          sudo chown -R www-data:www-data /var/www/react-production
+          sudo chmod -R 755 /var/www/react-production
+          echo "Files moved successfully"
         EOF
