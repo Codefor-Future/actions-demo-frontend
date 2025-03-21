@@ -9,7 +9,7 @@ function App() {
   return (
     <>
       <div>
-        Main update demo 6
+        New update 10
       </div>
       <h1>Vite + React</h1>
       <div className="card">
