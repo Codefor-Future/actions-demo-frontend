@@ -14,7 +14,7 @@ jobs:
 
     - name: Install dependencies and build React app
       run: |
-        npm ci || { echo "npm ci failed, trying npm install"; npm install; }
+        npm i || { echo "npm ci failed, trying npm install"; npm install; }
         npm run build || { echo "Build failed"; exit 1; }
 
     - name: Set up SSH
